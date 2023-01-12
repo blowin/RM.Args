@@ -9,10 +9,9 @@ public class ArgsTest
         {
             new Args("", new[] { "-x" });
         }
-        catch (ArgsException e)
+        catch (UnexpectedArgumentException e)
         {
-            Assert.Equal(ArgsException.ErrorCode.UnexpectedArgument, e.GetErrorCode());
-            Assert.Equal('x', e.GetErrorArgumentId());
+            Assert.Equal('x', e.ErrorArgumentId);
         }
     }
 
@@ -23,10 +22,9 @@ public class ArgsTest
         {
             new Args("", new[] { "-x", "-y" });
         }
-        catch (ArgsException e)
+        catch (UnexpectedArgumentException e)
         {
-            Assert.Equal(ArgsException.ErrorCode.UnexpectedArgument, e.GetErrorCode());
-            Assert.Equal('x', e.GetErrorArgumentId());
+            Assert.Equal('x', e.ErrorArgumentId);
         }
     }
 
@@ -37,10 +35,9 @@ public class ArgsTest
         {
             new Args("*", new String[] { });
         }
-        catch (ArgsException e)
+        catch (InvalidArgumentNameException e)
         {
-            Assert.Equal(ArgsException.ErrorCode.InvalidArgumentName, e.GetErrorCode());
-            Assert.Equal('*', e.GetErrorArgumentId());
+            Assert.Equal('*', e.ErrorArgumentId);
         }
     }
 
@@ -51,10 +48,9 @@ public class ArgsTest
         {
             new Args("f~", new String[] { });
         }
-        catch (ArgsException e)
+        catch (InvalidArgsFormatException e)
         {
-            Assert.Equal(ArgsException.ErrorCode.InvalidFormat, e.GetErrorCode());
-            Assert.Equal('f', e.GetErrorArgumentId());
+            Assert.Equal('f', e.ErrorArgumentId);
         }
     }
 
@@ -82,7 +78,7 @@ public class ArgsTest
         }
         catch (MissingArgsException e)
         {
-            Assert.Equal('x', e.GetErrorArgumentId());
+            Assert.Equal('x', e.ErrorArgumentId);
         }
     }
 
@@ -111,8 +107,8 @@ public class ArgsTest
         }
         catch (InvalidArgsException e)
         {
-            Assert.Equal('x', e.GetErrorArgumentId());
-            Assert.Equal("Forty two", e.GetErrorParameter());
+            Assert.Equal('x', e.ErrorArgumentId);
+            Assert.Equal("Forty two", e.ErrorParameter);
         }
     }
 
@@ -125,7 +121,7 @@ public class ArgsTest
         }
         catch (MissingArgsException e)
         {
-            Assert.Equal('x', e.GetErrorArgumentId());
+            Assert.Equal('x', e.ErrorArgumentId);
         }
     }
 
@@ -146,8 +142,8 @@ public class ArgsTest
         }
         catch (InvalidArgsException e)
         {
-            Assert.Equal('x', e.GetErrorArgumentId());
-            Assert.Equal("Forty two", e.GetErrorParameter());
+            Assert.Equal('x', e.ErrorArgumentId);
+            Assert.Equal("Forty two", e.ErrorParameter);
         }
     }
 
@@ -160,14 +156,14 @@ public class ArgsTest
         }
         catch (MissingArgsException e)
         {
-            Assert.Equal('x', e.GetErrorArgumentId());
+            Assert.Equal('x', e.ErrorArgumentId);
         }
     }
     
     [Fact]
     public void TestExtraArguments()
     {
-        var args = new Args("x,y*", new[] { "-x", "-y", "alpha", "beta" });
+        var args = new Args("x,y*", new[] { "-x", "true", "-y", "alpha" });
         Assert.True(args.Get<bool>('x'));
         Assert.Equal("alpha", args.Get<string>('y'));
     }
@@ -175,7 +171,7 @@ public class ArgsTest
     [Fact]
     public void TestExtraArgumentsThatLookLikeFlags()
     {
-        var args = new Args("x,y", new[] { "-x", "alpha", "-y", "beta" });
+        var args = new Args("x,y", new[] { "-x", "true", "-y", "true" });
         Assert.True(args.Has('x'));
         Assert.True(args.Has('y'));
         Assert.True(args.Get<bool>('x'));

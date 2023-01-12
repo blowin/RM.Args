@@ -24,7 +24,7 @@ public class Args
             var trimmedElement = element.Trim();
             var elementId = trimmedElement[0];
             if (!char.IsLetter(elementId))
-                throw new ArgsException(ArgsException.ErrorCode.InvalidArgumentName, elementId, null);
+                throw new InvalidArgumentNameException(elementId);
 
             var elementTail = trimmedElement.Substring(1);
             if (elementTail.Length == 0)
@@ -36,7 +36,7 @@ public class Args
             else if (elementTail.Equals("##"))
                 _marshalers.Add(elementId, new DoubleArgumentMarshaler(elementId));
             else
-                throw new ArgsException(ArgsException.ErrorCode.InvalidFormat, elementId, elementTail);
+                throw new InvalidArgsFormatException(elementId, elementTail);
         }
     }
 
@@ -51,25 +51,10 @@ public class Args
 
             foreach (var argChar in arg.Skip(1))
             {
-                if (!SetArgument(argChar, currentArgument))
-                    throw new ArgsException(ArgsException.ErrorCode.UnexpectedArgument, argChar, null);
+                if (!_marshalers.TryGetValue(argChar, out var m))
+                    throw new UnexpectedArgumentException(argChar);
+                m.Set(currentArgument);
             }
-        }
-    }
-
-    private bool SetArgument(char argChar, IEnumerator<string> currentArgument)
-    {
-        if (!_marshalers.TryGetValue(argChar, out var m))
-            return false;
-        try
-        {
-            m.Set(currentArgument);
-            return true;
-        }
-        catch (ArgsException e)
-        {
-            e.SetErrorArgumentId(argChar);
-            throw;
         }
     }
 
@@ -92,8 +77,5 @@ public class Args
         return value is T castValue ? castValue : defaultValue;
     }
 
-    public bool Has(char arg)
-    {
-        return _marshalers.TryGetValue(arg, out var marshaler) && marshaler.HasValue;
-    }
+    public bool Has(char arg) => _marshalers.TryGetValue(arg, out var marshaler) && marshaler.HasValue;
 }
