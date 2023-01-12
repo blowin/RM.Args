@@ -5,34 +5,29 @@ namespace RM.Args;
 public class Args
 {
     private string _schema;
-
     private Dictionary<char, ArgumentMarshaler> _marshalers = new Dictionary<char, ArgumentMarshaler>();
-
     private HashSet<char> _argsFound = new HashSet<char>();
-    private IEnumerator<string> _currentArgument;
-    private List<string> _argsList;
 
     public Args(string schema, string[] args)
     {
         _schema = schema;
-        _argsList = new List<string>(args);
         ParseSchema();
-        ParseArguments();
+        ParseArguments(args);
     }
 
     private void ParseSchema()
     {
-        foreach (string element in _schema.Split(","))
+        foreach (var element in _schema.Split(","))
         {
             if (string.IsNullOrWhiteSpace(element))
                 continue;
 
             var trimmedElement = element.Trim();
-            char elementId = trimmedElement[0];
+            var elementId = trimmedElement[0];
             if (!char.IsLetter(elementId))
                 throw new ArgsException(ArgsException.ErrorCode.InvalidArgumentName, elementId, null);
 
-            string elementTail = trimmedElement.Substring(1);
+            var elementTail = trimmedElement.Substring(1);
             if (elementTail.Length == 0)
                 _marshalers.Add(elementId, new BooleanArgumentMarshaler());
             else if (elementTail.Equals("*"))
@@ -46,17 +41,18 @@ public class Args
         }
     }
 
-    private void ParseArguments()
+    private void ParseArguments(string[] args)
     {
-        for (_currentArgument = _argsList.GetEnumerator(); _currentArgument.MoveNext();)
+        var argsList = new List<string>(args);
+        for (var currentArgument = argsList.GetEnumerator(); currentArgument.MoveNext();)
         {
-            string arg = _currentArgument.Current;
+            var arg = currentArgument.Current;
             if (!arg.StartsWith("-"))
                 continue;
 
             foreach (var argChar in arg.Skip(1))
             {
-                if (!SetArgument(argChar))
+                if (!SetArgument(argChar, currentArgument))
                     throw new ArgsException(ArgsException.ErrorCode.UnexpectedArgument, argChar, null);
 
                 _argsFound.Add(argChar);
@@ -64,14 +60,14 @@ public class Args
         }
     }
 
-    private bool SetArgument(char argChar)
+    private bool SetArgument(char argChar, IEnumerator<string> currentArgument)
     {
-        ArgumentMarshaler m = _marshalers.TryGetValue(argChar, out var r) ? r : null;
+        var m = _marshalers.TryGetValue(argChar, out var r) ? r : null;
         if (m == null)
             return false;
         try
         {
-            m.Set(_currentArgument);
+            m.Set(currentArgument);
             return true;
         }
         catch (ArgsException e)
