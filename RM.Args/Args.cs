@@ -5,11 +5,12 @@ namespace RM.Args;
 public class Args
 {
     private readonly string _schema;
-    private readonly Dictionary<char, ArgumentMarshaler> _marshalers = new Dictionary<char, ArgumentMarshaler>();
+    private readonly Dictionary<char, ArgumentMarshaler> _marshalers;
 
     public Args(string schema, string[] args)
     {
         _schema = schema;
+        _marshalers = new Dictionary<char, ArgumentMarshaler>();
         ParseSchema();
         ParseArguments(args);
     }
@@ -27,17 +28,23 @@ public class Args
                 throw new InvalidArgumentNameException(elementId);
 
             var elementTail = trimmedElement.Substring(1);
-            if (elementTail.Length == 0)
-                _marshalers.Add(elementId, new BooleanArgumentMarshaler(elementId));
-            else if (elementTail.Equals("*"))
-                _marshalers.Add(elementId, new StringArgumentMarshaler(elementId));
-            else if (elementTail.Equals("#"))
-                _marshalers.Add(elementId, new IntegerArgumentMarshaler(elementId));
-            else if (elementTail.Equals("##"))
-                _marshalers.Add(elementId, new DoubleArgumentMarshaler(elementId));
-            else
-                throw new InvalidArgsFormatException(elementId, elementTail);
+            var marshaler = CreateMarshaler(elementId, elementTail);
+            _marshalers.Add(elementId, marshaler);
         }
+    }
+
+    private ArgumentMarshaler CreateMarshaler(char elementId, string elementTail)
+    {
+        if (elementTail.Length == 0)
+            return new BooleanArgumentMarshaler(elementId);
+        return elementTail switch
+        {
+            "*" => new StringArgumentMarshaler(elementId),
+            "#" => new IntegerArgumentMarshaler(elementId),
+            "[#]" => new IntegerArrayArgumentMarshaler(elementId),
+            "##" => new DoubleArgumentMarshaler(elementId),
+            _ => throw new InvalidArgsFormatException(elementId, elementTail)
+        };
     }
 
     private void ParseArguments(string[] args)

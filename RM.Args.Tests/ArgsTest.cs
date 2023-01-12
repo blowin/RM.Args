@@ -1,3 +1,5 @@
+using FluentAssertions;
+
 namespace RM.Args.Tests;
 
 public class ArgsTest
@@ -176,5 +178,34 @@ public class ArgsTest
         Assert.True(args.Has('y'));
         Assert.True(args.Get<bool>('x'));
         Assert.True(args.Get<bool>('y'));
+    }
+    
+    [Fact]
+    public void ExtraIntArrayArgument()
+    {
+        var expectValue = new[] { 1, 2, 3, 4, 5 };
+        
+        var args = new Args("x[#]", new[] { "-x", "1,2,3,4,5" });
+
+        Assert.True(args.Has('x'));
+
+        var actualResult = args.Get<int[]>('x');
+        actualResult.Should().NotBeNull().And
+                             .Equal(expectValue);
+    }
+    
+    [Fact]
+    public void ExtraNonIntArray_AsIntArray()
+    {
+        try
+        {
+            var _ = new Args("x[#]", new[] { "-x", "2,dqw" });
+            Assert.Fail( "Unreachable code");
+        }
+        catch (InvalidArgsException e)
+        {
+            Assert.Equal('x', e.ErrorArgumentId);
+            Assert.Equal("2,dqw", e.ErrorParameter);
+        }
     }
 }
