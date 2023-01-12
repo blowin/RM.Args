@@ -28,13 +28,13 @@ public class Args
 
             var elementTail = trimmedElement.Substring(1);
             if (elementTail.Length == 0)
-                _marshalers.Add(elementId, new BooleanArgumentMarshaler());
+                _marshalers.Add(elementId, new BooleanArgumentMarshaler(elementId));
             else if (elementTail.Equals("*"))
-                _marshalers.Add(elementId, new StringArgumentMarshaler());
+                _marshalers.Add(elementId, new StringArgumentMarshaler(elementId));
             else if (elementTail.Equals("#"))
-                _marshalers.Add(elementId, new IntegerArgumentMarshaler());
+                _marshalers.Add(elementId, new IntegerArgumentMarshaler(elementId));
             else if (elementTail.Equals("##"))
-                _marshalers.Add(elementId, new DoubleArgumentMarshaler());
+                _marshalers.Add(elementId, new DoubleArgumentMarshaler(elementId));
             else
                 throw new ArgsException(ArgsException.ErrorCode.InvalidFormat, elementId, elementTail);
         }
@@ -59,8 +59,7 @@ public class Args
 
     private bool SetArgument(char argChar, IEnumerator<string> currentArgument)
     {
-        var m = _marshalers.TryGetValue(argChar, out var r) ? r : null;
-        if (m == null)
+        if (!_marshalers.TryGetValue(argChar, out var m))
             return false;
         try
         {
@@ -95,7 +94,6 @@ public class Args
 
     public bool Has(char arg)
     {
-        return _marshalers.TryGetValue(arg, out var marshaler) && 
-               marshaler.HasValue;
+        return _marshalers.TryGetValue(arg, out var marshaler) && marshaler.HasValue;
     }
 }

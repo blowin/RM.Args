@@ -1,28 +1,10 @@
 ﻿namespace RM.Args.ArgumentMarshalers;
 
-public class IntegerArgumentMarshaler : ArgumentMarshaler
+public class IntegerArgumentMarshaler : ArgumentMarshaler<int>
 {
-    private int _intValue = 0;
-
-    protected override void SetCore(IEnumerator<string> currentArgument)
+    public IntegerArgumentMarshaler(char elementId) : base(elementId)
     {
-        if (!currentArgument.MoveNext())
-            throw new ArgsException(ArgsException.ErrorCode.MissingInteger);
-
-        string parameter = null;
-        try
-        {
-            parameter = currentArgument.Current;
-            _intValue = int.Parse(parameter);
-        }
-        catch (FormatException e)
-        {
-            throw new ArgsException(ArgsException.ErrorCode.InvalidInteger, parameter);
-        }
     }
 
-    public override object Get()
-    {
-        return _intValue;
-    }
+    protected override int Parse(string value) => int.Parse(value);
 }

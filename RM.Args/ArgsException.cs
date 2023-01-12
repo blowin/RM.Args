@@ -1,8 +1,26 @@
 ﻿namespace RM.Args;
 
+public class InvalidArgsException : ArgsException
+{
+    public InvalidArgsException(Type type, char elementId, string parameter) 
+        : base(string.Format("Argument -{0} expects a {1} but was '{2}'.", elementId, type.Name, parameter), elementId, parameter)
+    {
+        
+    }
+}
+
+public class MissingArgsException : ArgsException
+{
+    public MissingArgsException(Type type, char elementId) 
+        : base(string.Format("Could not find {0} parameter for -{1}.", type.Name, elementId), elementId, null)
+    {
+        
+    }
+}
+
 public class ArgsException : Exception
 {
-    private char _errorArgumentId = '\0';
+    protected char _errorArgumentId = '\0';
     private string _errorParameter = "TILT";
     private ErrorCode _errorCode = ErrorCode.Ok;
 
@@ -10,8 +28,10 @@ public class ArgsException : Exception
     {
     }
 
-    public ArgsException(string message) : base(message)
+    public ArgsException(string message, char errorArgumentId, string errorParameter) : base(message)
     {
+        _errorArgumentId = errorArgumentId;
+        _errorParameter = errorParameter;
     }
 
     public ArgsException(ErrorCode errorCode)
@@ -63,7 +83,7 @@ public class ArgsException : Exception
         _errorCode = errorCode;
     }
 
-    public string ErrorMessage()
+    public virtual string ErrorMessage()
     {
         switch (_errorCode)
         {
@@ -71,21 +91,6 @@ public class ArgsException : Exception
                 throw new Exception("TILT: Should not get here.");
             case ErrorCode.UnexpectedArgument:
                 return string.Format("Argument -{0} unexpected.", _errorArgumentId);
-            case ErrorCode.MissingString:
-                return string.Format("Could not find string parameter for -{0}.",
-                    _errorArgumentId);
-            case ErrorCode.InvalidInteger:
-                return string.Format("Argument -{0} expects an integer but was '{1}'.",
-                    _errorArgumentId, _errorParameter);
-            case ErrorCode.MissingInteger:
-                return string.Format("Could not find integer parameter for -{0}.",
-                    _errorArgumentId);
-            case ErrorCode.InvalidDouble:
-                return string.Format("Argument -{0} expects a double but was '{1}'.",
-                    _errorArgumentId, _errorParameter);
-            case ErrorCode.MissingDouble:
-                return string.Format("Could not find double parameter for -{0}.",
-                    _errorArgumentId);
         }
 
         return "";
@@ -97,10 +102,5 @@ public class ArgsException : Exception
         InvalidFormat,
         UnexpectedArgument,
         InvalidArgumentName,
-        MissingString,
-        MissingInteger,
-        InvalidInteger,
-        MissingDouble,
-        InvalidDouble
     }
 }

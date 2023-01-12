@@ -1,16 +1,10 @@
 ﻿namespace RM.Args.ArgumentMarshalers;
 
-public class BooleanArgumentMarshaler : ArgumentMarshaler
+public class BooleanArgumentMarshaler : ArgumentMarshaler<bool>
 {
-    private bool _booleanValue = false;
-
-    protected override void SetCore(IEnumerator<string> currentArgument)
+    public BooleanArgumentMarshaler(char elementId) : base(elementId)
     {
-        _booleanValue = true;
     }
 
-    public override object Get()
-    {
-        return _booleanValue;
-    }
+    protected override bool Parse(string value) => bool.Parse(value);
 }

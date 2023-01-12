@@ -61,7 +61,7 @@ public class ArgsTest
     [Fact]
     public void TestSimpleBooleanPresent()
     {
-        var args = new Args("x", new[] { "-x" });
+        var args = new Args("x", new[] { "-x", "true" });
         Assert.True(args.Get<bool>('x'));
     }
 
@@ -80,9 +80,8 @@ public class ArgsTest
         {
             new Args("x*", new[] { "-x" });
         }
-        catch (ArgsException e)
+        catch (MissingArgsException e)
         {
-            Assert.Equal(ArgsException.ErrorCode.MissingString, e.GetErrorCode());
             Assert.Equal('x', e.GetErrorArgumentId());
         }
     }
@@ -90,7 +89,7 @@ public class ArgsTest
     [Fact]
     public void TestSpacesInFormat()
     {
-        var args = new Args("x, y", new[] { "-xy" });
+        var args = new Args("x, y", new[] { "-xy", "true" });
         Assert.True(args.Has('x'));
         Assert.True(args.Has('y'));
     }
@@ -110,9 +109,8 @@ public class ArgsTest
         {
             new Args("x#", new[] { "-x", "Forty two" });
         }
-        catch (ArgsException e)
+        catch (InvalidArgsException e)
         {
-            Assert.Equal(ArgsException.ErrorCode.InvalidInteger, e.GetErrorCode());
             Assert.Equal('x', e.GetErrorArgumentId());
             Assert.Equal("Forty two", e.GetErrorParameter());
         }
@@ -125,9 +123,8 @@ public class ArgsTest
         {
             new Args("x#", new[] { "-x" });
         }
-        catch (ArgsException e)
+        catch (MissingArgsException e)
         {
-            Assert.Equal(ArgsException.ErrorCode.MissingInteger, e.GetErrorCode());
             Assert.Equal('x', e.GetErrorArgumentId());
         }
     }
@@ -147,9 +144,8 @@ public class ArgsTest
         {
             new Args("x##", new[] { "-x", "Forty two" });
         }
-        catch (ArgsException e)
+        catch (InvalidArgsException e)
         {
-            Assert.Equal(ArgsException.ErrorCode.InvalidDouble, e.GetErrorCode());
             Assert.Equal('x', e.GetErrorArgumentId());
             Assert.Equal("Forty two", e.GetErrorParameter());
         }
@@ -162,9 +158,8 @@ public class ArgsTest
         {
             new Args("x##", new[] { "-x" });
         }
-        catch (ArgsException e)
+        catch (MissingArgsException e)
         {
-            Assert.Equal(ArgsException.ErrorCode.MissingDouble, e.GetErrorCode());
             Assert.Equal('x', e.GetErrorArgumentId());
         }
     }
