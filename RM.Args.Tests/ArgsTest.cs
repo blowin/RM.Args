@@ -62,7 +62,7 @@ public class ArgsTest
     public void TestSimpleBooleanPresent()
     {
         var args = new Args("x", new[] { "-x" });
-        Assert.True(args.GetBoolean('x'));
+        Assert.True(args.Get<bool>('x'));
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public class ArgsTest
     {
         var args = new Args("x*", new[] { "-x", "param" });
         Assert.True(args.Has('x'));
-        Assert.Equal("param", args.GetString('x'));
+        Assert.Equal("param", args.Get<string>('x'));
     }
 
     [Fact]
@@ -100,7 +100,7 @@ public class ArgsTest
     {
         var args = new Args("x#", new[] { "-x", "42" });
         Assert.True(args.Has('x'));
-        Assert.Equal(42, args.GetInt('x'));
+        Assert.Equal(42, args.Get<int>('x'));
     }
 
     [Fact]
@@ -135,9 +135,9 @@ public class ArgsTest
     [Fact]
     public void TestSimpleDoublePresent()
     {
-        var args = new Args("x##", new[] { "-x", "42.3" });
+        var args = new Args("x##", new[] { "-x", "42,3" });
         Assert.True(args.Has('x'));
-        Assert.Equal(42.3, args.GetDouble('x'), .001);
+        Assert.Equal(42.3, args.Get<double>('x'), .001);
     }
 
     [Fact]
@@ -173,8 +173,8 @@ public class ArgsTest
     public void TestExtraArguments()
     {
         var args = new Args("x,y*", new[] { "-x", "-y", "alpha", "beta" });
-        Assert.True(args.GetBoolean('x'));
-        Assert.Equal("alpha", args.GetString('y'));
+        Assert.True(args.Get<bool>('x'));
+        Assert.Equal("alpha", args.Get<string>('y'));
     }
 
     [Fact]
@@ -183,7 +183,7 @@ public class ArgsTest
         var args = new Args("x,y", new[] { "-x", "alpha", "-y", "beta" });
         Assert.True(args.Has('x'));
         Assert.True(args.Has('y'));
-        Assert.True(args.GetBoolean('x'));
-        Assert.True(args.GetBoolean('y'));
+        Assert.True(args.Get<bool>('x'));
+        Assert.True(args.Get<bool>('y'));
     }
 }

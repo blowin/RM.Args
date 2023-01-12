@@ -16,51 +16,33 @@ public class Args
     {
         _schema = schema;
         _argsList = new List<string>(args);
-        Parse();
-    }
-
-    private void Parse()
-    {
         ParseSchema();
         ParseArguments();
     }
 
-    private bool ParseSchema()
+    private void ParseSchema()
     {
         foreach (string element in _schema.Split(","))
         {
-            if (element.Length > 0)
-            {
-                ParseSchemaElement(element.Trim());
-            }
-        }
+            if (string.IsNullOrWhiteSpace(element))
+                continue;
 
-        return true;
-    }
+            var trimmedElement = element.Trim();
+            char elementId = trimmedElement[0];
+            if (!char.IsLetter(elementId))
+                throw new ArgsException(ArgsException.ErrorCode.InvalidArgumentName, elementId, null);
 
-    private void ParseSchemaElement(string element)
-    {
-        char elementId = element[0];
-        string elementTail = element.Substring(1);
-        ValidateSchemaElementId(elementId);
-        if (elementTail.Length == 0)
-            _marshalers.Add(elementId, new BooleanArgumentMarshaler());
-        else if (elementTail.Equals("*"))
-            _marshalers.Add(elementId, new StringArgumentMarshaler());
-        else if (elementTail.Equals("#"))
-            _marshalers.Add(elementId, new IntegerArgumentMarshaler());
-        else if (elementTail.Equals("##"))
-            _marshalers.Add(elementId, new DoubleArgumentMarshaler());
-        else
-            throw new ArgsException(ArgsException.ErrorCode.InvalidFormat, elementId, elementTail);
-    }
-
-    private void ValidateSchemaElementId(char elementId)
-    {
-        if (!char.IsLetter(elementId))
-        {
-            throw new ArgsException(ArgsException.ErrorCode.InvalidArgumentName,
-                elementId, null);
+            string elementTail = trimmedElement.Substring(1);
+            if (elementTail.Length == 0)
+                _marshalers.Add(elementId, new BooleanArgumentMarshaler());
+            else if (elementTail.Equals("*"))
+                _marshalers.Add(elementId, new StringArgumentMarshaler());
+            else if (elementTail.Equals("#"))
+                _marshalers.Add(elementId, new IntegerArgumentMarshaler());
+            else if (elementTail.Equals("##"))
+                _marshalers.Add(elementId, new DoubleArgumentMarshaler());
+            else
+                throw new ArgsException(ArgsException.ErrorCode.InvalidFormat, elementId, elementTail);
         }
     }
 
@@ -69,30 +51,16 @@ public class Args
         for (_currentArgument = _argsList.GetEnumerator(); _currentArgument.MoveNext();)
         {
             string arg = _currentArgument.Current;
-            ParseArgument(arg);
-        }
-    }
+            if (!arg.StartsWith("-"))
+                continue;
 
-    private void ParseArgument(string arg)
-    {
-        if (arg.StartsWith("-"))
-            ParseElements(arg);
-    }
+            foreach (var argChar in arg.Skip(1))
+            {
+                if (!SetArgument(argChar))
+                    throw new ArgsException(ArgsException.ErrorCode.UnexpectedArgument, argChar, null);
 
-    private void ParseElements(string arg)
-    {
-        for (int i = 1; i < arg.Length; i++)
-            ParseElement(arg[i]);
-    }
-
-    private void ParseElement(char argChar)
-    {
-        if (SetArgument(argChar))
-            _argsFound.Add(argChar);
-        else
-        {
-            throw new ArgsException(ArgsException.ErrorCode.UnexpectedArgument,
-                argChar, null);
+                _argsFound.Add(argChar);
+            }
         }
     }
 
@@ -126,59 +94,14 @@ public class Args
             return "";
     }
 
-    public bool GetBoolean(char arg)
+    public T Get<T>(char arg, T defaultValue = default)
     {
-        ArgumentMarshaler am = _marshalers.TryGetValue(arg, out var r) ? r : null;
-        bool b = false;
-        try
-        {
-            b = am != null && (bool)am.Get();
-        }
-        catch (InvalidCastException e)
-        {
-            b = false;
-        }
+        var am = _marshalers.TryGetValue(arg, out var r) ? r : null;
+        if (am == null)
+            return defaultValue;
 
-        return b;
-    }
-
-    public string GetString(char arg)
-    {
-        ArgumentMarshaler am = _marshalers.TryGetValue(arg, out var r) ? r : null;
-        try
-        {
-            return am == null ? "" : (string)am.Get();
-        }
-        catch (InvalidCastException e)
-        {
-            return "";
-        }
-    }
-
-    public int GetInt(char arg)
-    {
-        ArgumentMarshaler am = _marshalers.TryGetValue(arg, out var r) ? r : null;
-        try
-        {
-            return am == null ? 0 : (int)am.Get();
-        }
-        catch (Exception e)
-        {
-            return 0;
-        }
-    }
-
-    public double GetDouble(char arg)
-    {
-        ArgumentMarshaler am = _marshalers.TryGetValue(arg, out var r) ? r : null;
-        try
-        {
-            return am == null ? 0 : (double)am.Get();
-        }
-        catch (Exception e)
-        {
-            return 0.0;
-        }
+        var value = am.Get();
+        return value is T castValue ? castValue : defaultValue;
     }
 
     public bool Has(char arg)
