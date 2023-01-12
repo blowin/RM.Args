@@ -4,9 +4,8 @@ namespace RM.Args;
 
 public class Args
 {
-    private string _schema;
-    private Dictionary<char, ArgumentMarshaler> _marshalers = new Dictionary<char, ArgumentMarshaler>();
-    private HashSet<char> _argsFound = new HashSet<char>();
+    private readonly string _schema;
+    private readonly Dictionary<char, ArgumentMarshaler> _marshalers = new Dictionary<char, ArgumentMarshaler>();
 
     public Args(string schema, string[] args)
     {
@@ -54,8 +53,6 @@ public class Args
             {
                 if (!SetArgument(argChar, currentArgument))
                     throw new ArgsException(ArgsException.ErrorCode.UnexpectedArgument, argChar, null);
-
-                _argsFound.Add(argChar);
             }
         }
     }
@@ -77,17 +74,13 @@ public class Args
         }
     }
 
-    public int Cardinality()
-    {
-        return _argsFound.Count;
-    }
+    public int Cardinality() => _marshalers.Values.Count(e => e.HasValue);
 
     public string Usage()
     {
-        if (_schema.Length > 0)
-            return "-[" + _schema + "]";
-        else
-            return "";
+        return _schema.Length > 0 ? 
+            "-[" + _schema + "]" : 
+            "";
     }
 
     public T Get<T>(char arg, T defaultValue = default)
@@ -102,6 +95,7 @@ public class Args
 
     public bool Has(char arg)
     {
-        return _argsFound.Contains(arg);
+        return _marshalers.TryGetValue(arg, out var marshaler) && 
+               marshaler.HasValue;
     }
 }

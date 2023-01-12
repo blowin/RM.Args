@@ -4,7 +4,7 @@ public class DoubleArgumentMarshaler : ArgumentMarshaler
 {
     private double _doubleValue = 0;
 
-    public override void Set(IEnumerator<string> currentArgument)
+    protected override void SetCore(IEnumerator<string> currentArgument)
     {
         if (!currentArgument.MoveNext())
             throw new ArgsException(ArgsException.ErrorCode.MissingDouble);

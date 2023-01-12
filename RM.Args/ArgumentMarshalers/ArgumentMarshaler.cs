@@ -2,6 +2,15 @@
 
 public abstract class ArgumentMarshaler
 {
-    public abstract void Set(IEnumerator<string> currentArgument);
+    public bool HasValue { get; private set; }
+
+    public void Set(IEnumerator<string> currentArgument)
+    {
+        SetCore(currentArgument);
+        HasValue = true;
+    }
+    
     public abstract object Get();
+
+    protected abstract void SetCore(IEnumerator<string> currentArgument);
 }

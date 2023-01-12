@@ -4,7 +4,7 @@ public class StringArgumentMarshaler : ArgumentMarshaler
 {
     private string _stringValue = "";
 
-    public override void Set(IEnumerator<string> currentArgument)
+    protected override void SetCore(IEnumerator<string> currentArgument)
     {
         if (!currentArgument.MoveNext())
             throw new ArgsException(ArgsException.ErrorCode.MissingString);

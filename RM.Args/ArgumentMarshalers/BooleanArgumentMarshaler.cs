@@ -4,7 +4,7 @@ public class BooleanArgumentMarshaler : ArgumentMarshaler
 {
     private bool _booleanValue = false;
 
-    public override void Set(IEnumerator<string> currentArgument)
+    protected override void SetCore(IEnumerator<string> currentArgument)
     {
         _booleanValue = true;
     }
